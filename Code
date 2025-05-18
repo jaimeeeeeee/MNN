@@ -1,0 +1,158 @@
+//create data table lists
+var cityList = getColumn("tabnle", "City");
+var conditionList = getColumn("tabnle", "condition");
+var prepareList = getColumn("tabnle", "Prepare");
+var descriptionList = getColumn("tabnle", "description");
+var langList = ["English", "Español (España)", "日本語"];
+var backgroundList = ["https://media1.giphy.com/media/5torEEM8QnR95Cqg11/200w.gif?cid=6c09b952l0ycda20bgiu3lztgy4e01g15t7xlckymvgculj6&ep=v1_gifs_search&rid=200w.gif&ct=g", 
+"https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExaHYyaWU3dzczYnVleXhyb3dhcG9rMDk1dmlkNnN0dXNyaWI0dnpocSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3oEjHB1EKuujDjYFWw/giphy.gif", 
+"https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExN3E4d2poandvYnh1OGNneXl3YXc1NGVud3dubDFnZnpma3dnN2toNiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Tnr3A9orQIL16/giphy.gif", 
+"windyGif.gif", "tornadoGif.gif"];
+//individual variables
+var city;
+var condition;
+var prepare;
+var description;
+var checkboxCount;
+var accent;
+var background;
+var checkboxCount=0;
+
+//background music
+playSound("SpotiMate.io---Hip-Shop---Toby-Fox.mp3", true);
+playSpeech("Hello and welcome to the Mohu News Network", "female", selectLang());
+
+//settings button
+onEvent("settings", "click", function( ) {
+  setScreen("options");
+});
+
+//accent change 
+onEvent("langDropdown","change", function(){
+  playSpeech(getText("langDropdown"), "female", selectLang());
+});
+
+//music on/off
+onEvent("musicCheckbox","change", function(){
+  checkboxCount=checkboxCount=checkboxCount+1;
+  if (checkboxCount%2==0){
+    playSound("SpotiMate.io---Hip-Shop---Toby-Fox.mp3", true);
+  } else {
+    stopSound("SpotiMate.io---Hip-Shop---Toby-Fox.mp3");
+  }
+});  
+  
+//settings back button
+onEvent("optionsBackButton", "click", function(){
+  setScreen("MainMenu");
+});
+
+
+onEvent("goNext", "click", function( ) {
+  var City = getText("cityDropdown");
+  if (City == "Pick Your City!") {
+    showElement("error");
+    showElement("confirmation");
+    onEvent("confirmation", "click", function( ) {
+      hideElement("error");
+      hideElement("confirmation");
+    });
+  } else {
+    setScreen("News");
+  }
+});
+
+//News Screen
+
+//News back button
+onEvent("backbuttonnews", "click", function( ) {
+  setScreen("MainMenu");
+});
+
+// show information for select city
+onEvent("goNext","click", function(){
+  city=getText("cityDropdown");
+  if (city!="Pick Your City!"){
+    for (var i = 0; i < cityList.length; i++) {
+    if (cityList[i]==city){
+      condition=conditionList[i];
+      prepare=prepareList[i];
+      description=descriptionList[i];
+    }
+  }
+  updateScreen();
+  }  
+});
+
+//prepare screen on events
+onEvent("prepareButton", "click", function( ) {
+  setScreen("PrepareScreen");
+  setText("HowPreparetext", prepare + "\n" + "-Stay Safe & wait for first responders!");
+  playSpeech(prepare, "female", selectLang());
+});
+onEvent("ReturnButton", "click", function( ) {
+  setScreen("MainMenu");
+  Revert("ReturnButton");
+});
+
+//functions
+function selectLang() {
+  accent=getText("langDropdown");
+  if (accent=="English"){
+    return langList[0];
+  } else if(accent=="Spanish") {
+    return langList[1];
+  } else {
+    return langList[2];
+  }
+}
+function updateScreen(){
+  //update the city and condition textbox
+  setText("cityAndConditionText", "City:" + "\n" + city
+  + "\n" + "\n" + "Condition:" + "\n" + condition);
+  //update the dialogue textbox
+  setText("descText", description);
+  // changes the music
+  playSpeech(description, "female", selectLang());
+  Revert("backbuttonnews");
+  weatherSettings();
+  
+}
+// this function reverts the music to defualt 
+function Revert(button) {
+  onEvent(button, "click", function( ) {
+    stopSound("SpotiMate.io---Hip-Shop---Toby-Fox.mp3");
+    stopSound("");
+    playSound("SpotiMate.io---Hip-Shop---Toby-Fox.mp3", true);
+  });
+}
+function weatherSettings() {
+  hideElement("ProperMohu");
+  hideElement("WindMohu");
+  hideElement("wetscoobert");
+  if ((condition == "Rain") || (condition == "Thunderstorm")) {
+    stopSound("");
+    playSound("SpotiMate.io---Uwa__-So-Temperate_---Toby-Fox.mp3", true);
+    showElement("wetscoobert");
+    if (condition=="Rain"){
+      background=backgroundList[0];
+    } else {
+      background=backgroundList[1];
+    }
+  } else if ((condition == "Hail")) {
+    stopSound("");
+    playSound("SpotiMate.io---Uwa__-So-Holiday_---Toby-Fox.mp3", true);
+    showElement("ProperMohu");
+    background=backgroundList[2];
+  } else if (condition == "Wind" || condition == "Tornado") {
+    stopSound("");
+    playSound("SpotiMate.io---Amalgam---Toby-Fox.mp3", true);
+    showElement("WindMohu");
+    if (condition=="Wind"){
+      background=backgroundList[3];
+    } else {
+      background=backgroundList[4];
+    }
+  }
+  setProperty("News", "image", background);
+}    
